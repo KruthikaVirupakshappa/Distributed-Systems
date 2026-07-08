@@ -1,0 +1,52 @@
+3-Agent Mini-System with Kafka + LangChain
+Build a tiny system with 3 agents that communicate through Kafka:
+1. Planner: Makes a plan for the question.
+2. Writer: Writes a short answer using LangChain.
+3. Reviewer: Checks the answer and approves it.
+All messages must go through Kafka topics. No agent should call another agent directly. You may reuse agents from your previous work.System Workflow
+Sender
+Reads Topic
+Sends Message
+To Topic
+You
+(N/A)
+A question
+inbox
+None
+Planner
+inbox
+A TODO plan
+tasks
+Writer
+tasks
+A draft answer
+drafts
+Reviewer
+drafts
+An approval
+final
+You will run each agent in its own terminal.Kafka Topic Creation
+Create four topics: inbox, tasks, drafts, and final.
+(Use your Kafka CLI or UI; example CLI commands:)
+kafka-topics --create --topic inbox --partitions 1 --replication-factor 1 --bootstrap-server localhost:9092
+kafka-topics --create --topic tasks --partitions 1 --replication-factor 1 --bootstrap-server localhost:9092
+kafka-topics --create --topic drafts --partitions 1 --replication-factor 1 --bootstrap-server localhost:9092
+kafka-topics --create --topic final --partitions 1 --replication-factor 1 --bootstrap-server localhost:9092
+Running the Agents
+Run each agent in a separate terminal:
+Terminal
+Command
+Terminal 1
+python planner.py
+Terminal 2
+python writer.py
+Terminal 3
+python reviewer.py
+Terminal 4
+python send_question.py (Send one question)
+Viewing the Result
+Read the final result from the final topic.
+You should see a JSON with "status": "approved" and an "answer".What to Submit
+● Screenshot or log lines showing each agent received and sent messages.
+● Screenshot of the message in topic final with "status": "approved".
+● A short report explaining how Kafka helped your agents coordinate.

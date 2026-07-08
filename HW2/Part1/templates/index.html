@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Management</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1 class="heading">Book Management App</h1>
+        <!--- Search Book Section -->
+        <div class="actions-container">
+            <h2>Search Books</h2>
+                <input type="text" id="searchTitle" placeholder="Search by title..."/>
+                <button onclick="searchBooks()">Search</button>
+                <button onclick="loadBooks()">Clear</button>
+        </div>
+        <!--- Books List Section -->
+        <h2>Books List</h2>
+        <table id="booksTable" class="books-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Author</th>
+                </tr>
+            </thead>
+            <tbody id="booksTableBody">
+            </tbody>
+        </table>
+
+        <!--- Add Book Section -->
+        <div class="actions-container">
+            <h2>Add New Book</h2>
+                <input type="text" id="addTitle" placeholder="Enter book title"/>
+                <input type="text" id="addAuthor" placeholder="Enter author name"/>
+                <button onclick="addBook()">Add Book</button>
+        </div>
+
+        <!--- Update Book Section -->
+        <div class="actions-container">
+            <h2>Update Book</h2>
+                <input type="number" id="updateId" placeholder="Enter book ID"/>
+                <input type="text" id="updateTitle" placeholder="Enter new title"/>
+                <input type="text" id="updateAuthor" placeholder="Enter new author"/>
+                <button onclick="updateBook()">Update Book</button> 
+        </div>
+
+        <!--- Delete book Section -->
+        <div class="actions-container">
+            <h2>Delete Highest ID Book</h2>
+                <button onclick="deleteHighestIdBook()">Delete Highest ID Book</button>
+        </div>
+    </div>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

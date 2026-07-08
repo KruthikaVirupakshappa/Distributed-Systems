@@ -1,0 +1,122 @@
+[
+  {
+    "correlation_id": "",
+    "question": "What is the CAP theorem in distributed systems?",
+    "Plan-Quality": 0.8,
+    "Writer-Helpfulness": 0.9,
+    "Reviewer-Helpfulness": 0.9,
+    "Final-vs-Draft-Improvement": 1.0
+  },
+  {
+    "correlation_id": "e6b3a27e-c074-40b6-ad40-9ce6522b5c8e",
+    "question": "What is the CAP theorem in distributed systems?",
+    "Plan-Quality": 0.7,
+    "Writer-Helpfulness": 0.9,
+    "Reviewer-Helpfulness": 0.8,
+    "Final-vs-Draft-Improvement": 0.8
+  },
+  {
+    "correlation_id": "",
+    "question": "What is the CAP theorem in distributed systems?",
+    "Plan-Quality": 0.9,
+    "Writer-Helpfulness": 0.9,
+    "Reviewer-Helpfulness": 0.9,
+    "Final-vs-Draft-Improvement": 1.0
+  },
+  {
+    "correlation_id": "f6b61ba9-9d79-46d5-b3d7-6dd5fd1d9c32",
+    "question": "What is the CAP theorem in distributed systems?",
+    "Plan-Quality": 0.9,
+    "Writer-Helpfulness": 0.9,
+    "Reviewer-Helpfulness": 0.7,
+    "Final-vs-Draft-Improvement": 0.8
+  },
+  {
+    "correlation_id": "3b9098cd-ffe2-49e5-83d8-7dd90620065a",
+    "question": "What is the CAP theorem in distributed systems?",
+    "Plan-Quality": 0.6,
+    "Writer-Helpfulness": 0.9,
+    "Reviewer-Helpfulness": 0.9,
+    "Final-vs-Draft-Improvement": 0.9
+  },
+  {
+    "correlation_id": "",
+    "question": "What is the CAP theorem in distributed systems?",
+    "Plan-Quality": 0.9,
+    "Writer-Helpfulness": 0.9,
+    "Reviewer-Helpfulness": 0.8,
+    "Final-vs-Draft-Improvement": 1.0
+  },
+  {
+    "correlation_id": "461d0ea0-d9b6-43d0-b29f-55221fcd3d7d",
+    "question": "What is the CAP theorem in distributed systems?",
+    "Plan-Quality": 0.9,
+    "Writer-Helpfulness": 0.9,
+    "Reviewer-Helpfulness": 0.8,
+    "Final-vs-Draft-Improvement": 0.6
+  },
+  {
+    "correlation_id": "",
+    "question": "What is the CAP theorem in distributed systems?",
+    "Plan-Quality": 0.9,
+    "Writer-Helpfulness": 0.9,
+    "Reviewer-Helpfulness": 0.8,
+    "Final-vs-Draft-Improvement": 1.0
+  },
+  {
+    "correlation_id": "test-123",
+    "question": "test?",
+    "Plan-Quality": 0.5,
+    "Writer-Helpfulness": 0.8,
+    "Reviewer-Helpfulness": 0.7,
+    "Final-vs-Draft-Improvement": 0.7
+  },
+  {
+    "correlation_id": "2ac48f09-568f-44ce-b006-3b9e148b66fe",
+    "question": "What is the CAP theorem in distributed systems?",
+    "Plan-Quality": 0.8,
+    "Writer-Helpfulness": 0.9,
+    "Reviewer-Helpfulness": 0.8,
+    "Final-vs-Draft-Improvement": 1.0
+  },
+  {
+    "correlation_id": "",
+    "question": "What is the CAP theorem in distributed systems?",
+    "Plan-Quality": 0.8,
+    "Writer-Helpfulness": 0.9,
+    "Reviewer-Helpfulness": 0.8,
+    "Final-vs-Draft-Improvement": 1.0
+  },
+  {
+    "correlation_id": "b16dbcf3-45d4-4b2d-9172-56160ce8e5f3",
+    "question": "What is the CAP theorem in distributed systems?",
+    "Plan-Quality": 0.8,
+    "Writer-Helpfulness": 0.9,
+    "Reviewer-Helpfulness": 0.8,
+    "Final-vs-Draft-Improvement": 1.0
+  },
+  {
+    "correlation_id": "",
+    "question": "What is the CAP theorem in distributed systems?",
+    "Plan-Quality": 0.8,
+    "Writer-Helpfulness": 0.9,
+    "Reviewer-Helpfulness": 0.9,
+    "Final-vs-Draft-Improvement": 1.0
+  },
+  {
+    "correlation_id": "733470b3-4e8f-413e-aa3d-215213d2f27f",
+    "question": "What is the CAP theorem in distributed systems?",
+    "Plan-Quality": 0.8,
+    "Writer-Helpfulness": 0.9,
+    "Reviewer-Helpfulness": 0.9,
+    "Final-vs-Draft-Improvement": 1.0
+  },
+  {
+    "correlation_id": "",
+    "question": "What is the CAP theorem in distributed systems?",
+    "Plan-Quality": 0.6,
+    "Writer-Helpfulness": 0.9,
+    "Reviewer-Helpfulness": 0.9,
+    "Final-vs-Draft-Improvement": 1.0
+  }
+]

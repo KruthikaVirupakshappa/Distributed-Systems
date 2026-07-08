@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bike-Share Pass Optimizer</title>
+  <style>
+    /* ── Reset & base ─────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      min-height: 100vh;
+    }
+
+    /* ── Header ───────────────────────────────────────────── */
+    header {
+      background: linear-gradient(135deg, #1a1f2e 0%, #0d1117 100%);
+      border-bottom: 1px solid #2d3748;
+      padding: 16px 28px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    header .logo { font-size: 28px; }
+    header h1 { font-size: 1.35rem; font-weight: 700; color: #63b3ed; }
+    header .sub { font-size: 0.8rem; color: #718096; margin-top: 2px; }
+
+    /* ── Main layout ──────────────────────────────────────── */
+    .main { display: flex; flex-direction: column; gap: 20px; padding: 20px 28px; max-width: 1400px; margin: 0 auto; }
+
+    /* ── Card ─────────────────────────────────────────────── */
+    .card {
+      background: #1a1f2e;
+      border: 1px solid #2d3748;
+      border-radius: 12px;
+      padding: 20px 24px;
+    }
+    .card-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #718096;
+      margin-bottom: 14px;
+    }
+
+    /* ── Input form ───────────────────────────────────────── */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    @media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } }
+
+    .field label {
+      display: block;
+      font-size: 0.78rem;
+      color: #a0aec0;
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+    .field input[type="text"],
+    .field input[type="url"],
+    .field input[type="password"],
+    .field select {
+      width: 100%;
+      background: #0f1117;
+      border: 1px solid #2d3748;
+      border-radius: 8px;
+      padding: 9px 12px;
+      color: #e2e8f0;
+      font-size: 0.88rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .field input:focus, .field select:focus { border-color: #4299e1; }
+
+    .file-drop {
+      border: 2px dashed #2d3748;
+      border-radius: 8px;
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      position: relative;
+    }
+    .file-drop:hover, .file-drop.drag-over {
+      border-color: #4299e1;
+      background: rgba(66,153,225,0.05);
+    }
+    .file-drop input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+    .file-drop .drop-icon { font-size: 32px; margin-bottom: 6px; }
+    .file-drop .drop-text { font-size: 0.85rem; color: #718096; }
+    .file-drop .drop-name { font-size: 0.88rem; color: #63b3ed; margin-top: 4px; font-weight: 500; }
+
+    .btn-run {
+      grid-column: 1 / -1;
+      background: linear-gradient(135deg, #3182ce, #2b6cb0);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 28px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-run:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+    .btn-run:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* ── Content columns ──────────────────────────────────── */
+    .content-cols {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+    @media (max-width: 1024px) { .content-cols { grid-template-columns: 1fr; } }
+
+    /* ── Timeline ─────────────────────────────────────────── */
+    #timeline {
+      max-height: 640px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #2d3748 transparent;
+    }
+    #timeline::-webkit-scrollbar { width: 4px; }
+    #timeline::-webkit-scrollbar-thumb { background: #2d3748; border-radius: 2px; }
+
+    .tl-empty {
+      color: #4a5568;
+      font-size: 0.85rem;
+      text-align: center;
+      padding: 40px 0;
+    }
+
+    .tl-step {
+      border-left: 3px solid #2d3748;
+      margin-left: 12px;
+      padding: 0 0 16px 16px;
+      position: relative;
+      animation: fadeIn 0.3s ease;
+    }
+    .tl-step::before {
+      content: '';
+      position: absolute;
+      left: -8px;
+      top: 6px;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      border: 2px solid currentColor;
+      background: #0f1117;
+    }
+    .tl-step.thought   { color: #63b3ed; }
+    .tl-step.action    { color: #f6ad55; }
+    .tl-step.observation { color: #68d391; }
+    .tl-step.final_answer { color: #b794f4; border-left-color: #b794f4; }
+    .tl-step.error     { color: #fc8181; }
+
+    .tl-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .tl-label .step-num {
+      background: rgba(255,255,255,0.08);
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-size: 0.68rem;
+    }
+    .tl-body {
+      font-size: 0.83rem;
+      line-height: 1.55;
+      color: #cbd5e0;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .tl-body.action-body { color: #e2e8f0; }
+
+    .tool-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(246,173,85,0.12);
+      border: 1px solid rgba(246,173,85,0.3);
+      border-radius: 6px;
+      padding: 3px 10px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #f6ad55;
+      margin-bottom: 6px;
+    }
+    .tool-args {
+      background: #0f1117;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-family: "SF Mono", "Fira Code", monospace;
+      font-size: 0.75rem;
+      color: #a0aec0;
+      overflow-x: auto;
+    }
+    .obs-meta {
+      font-size: 0.72rem;
+      color: #4a5568;
+      margin-top: 4px;
+    }
+    .obs-ok { color: #68d391; }
+    .obs-fail { color: #fc8181; }
+
+    /* ── Spinner ──────────────────────────────────────────── */
+    .spinner {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    /* ── Metrics strip ────────────────────────────────────── */
+    #metrics-strip {
+      display: none;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .metric {
+      background: #0f1117;
+      border: 1px solid #2d3748;
+      border-radius: 8px;
+      padding: 12px 16px;
+      text-align: center;
+    }
+    .metric .val { font-size: 1.6rem; font-weight: 700; color: #63b3ed; }
+    .metric .lbl { font-size: 0.73rem; color: #718096; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.06em; }
+
+    /* ── Results panel ────────────────────────────────────── */
+    #results-panel { display: none; }
+
+    .decision-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 18px;
+      border-radius: 999px;
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 18px;
+    }
+    .decision-badge.membership {
+      background: rgba(104,211,145,0.15);
+      border: 2px solid #68d391;
+      color: #68d391;
+    }
+    .decision-badge.payperuse {
+      background: rgba(246,173,85,0.15);
+      border: 2px solid #f6ad55;
+      color: #f6ad55;
+    }
+
+    .result-section { margin-bottom: 20px; }
+    .result-section h3 {
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #718096;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #2d3748;
+      padding-bottom: 6px;
+    }
+    .result-section p, .result-section li {
+      font-size: 0.88rem;
+      line-height: 1.6;
+      color: #cbd5e0;
+    }
+    .result-section ul { padding-left: 20px; }
+    .result-section li { margin-bottom: 4px; }
+
+    .cost-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .cost-cell {
+      background: #0f1117;
+      border: 1px solid #2d3748;
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .cost-cell .cost-label { font-size: 0.75rem; color: #718096; margin-bottom: 4px; }
+    .cost-cell .cost-val   { font-size: 1.2rem; font-weight: 700; color: #e2e8f0; }
+    .cost-cell .cost-sub   { font-size: 0.72rem; color: #4a5568; margin-top: 3px; }
+    .cost-cell.winner      { border-color: #68d391; }
+    .cost-cell.winner .cost-val { color: #68d391; }
+    .cost-cell.neutral .cost-val { color: #63b3ed; }
+
+    .policy-params {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .param-tag {
+      background: rgba(99,179,237,0.08);
+      border: 1px solid rgba(99,179,237,0.2);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      color: #90cdf4;
+    }
+    .param-tag strong { color: #bee3f8; }
+
+    /* ── Table ────────────────────────────────────────────── */
+    .weekly-table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+    th, td {
+      padding: 7px 12px;
+      text-align: left;
+      border-bottom: 1px solid #2d3748;
+    }
+    th { color: #718096; font-weight: 600; background: #0f1117; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    /* ── Citations ────────────────────────────────────────── */
+    .citation {
+      background: #0f1117;
+      border-left: 3px solid #4a5568;
+      border-radius: 0 6px 6px 0;
+      padding: 8px 12px;
+      margin-bottom: 8px;
+      font-size: 0.8rem;
+    }
+    .citation blockquote { color: #a0aec0; font-style: italic; margin-bottom: 4px; }
+    .citation .cite-meta { color: #4a5568; font-size: 0.72rem; }
+    .citation .cite-meta a { color: #4299e1; text-decoration: none; }
+    .citation .cite-meta a:hover { text-decoration: underline; }
+
+    /* ── Raw output ───────────────────────────────────────── */
+    #raw-answer {
+      background: #0f1117;
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 0.82rem;
+      line-height: 1.65;
+      color: #a0aec0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    /* ── Step log table ───────────────────────────────────── */
+    #step-log-wrap { display: none; }
+
+    /* ── Animations ───────────────────────────────────────── */
+    @keyframes fadeIn { from { opacity:0; transform: translateY(4px); } to { opacity:1; transform: none; } }
+    @keyframes spin   { to { transform: rotate(360deg); } }
+
+    /* ── Tabs ─────────────────────────────────────────────── */
+    .tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+    .tab {
+      padding: 6px 16px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid #2d3748;
+      background: transparent;
+      color: #718096;
+      transition: all 0.2s;
+    }
+    .tab.active, .tab:hover {
+      background: #2d3748;
+      color: #e2e8f0;
+      border-color: #4a5568;
+    }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🚲</div>
+  <div>
+    <h1>Bike-Share Pass Optimizer</h1>
+    <div class="sub">ReAct + MRKL Agent · Citi Bike NYC · Single-Agent Analysis</div>
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- ── Input card ─────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">Configure Analysis</div>
+    <div class="form-grid">
+      <div class="field">
+        <label>Monthly Trip CSV</label>
+        <div class="file-drop" id="drop-zone">
+          <input type="file" id="csv-input" accept=".csv" />
+          <div class="drop-icon">📄</div>
+          <div class="drop-text">Drop CSV here or click to browse</div>
+          <div class="drop-name" id="file-name"></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Pricing Page URL</label>
+        <input type="url" id="pricing-url" placeholder="https://citibikenyc.com/pricing"
+               value="https://citibikenyc.com/pricing" />
+
+        <label style="margin-top:12px">LLM Model</label>
+        <select id="model-select">
+          <option value="llama-3.3-70b-versatile" selected>Llama 3.3 70B (Groq)</option>
+          <option value="llama3-70b-8192">Llama 3 70B (Groq)</option>
+          <option value="mixtral-8x7b-32768">Mixtral 8x7B (Groq)</option>
+        </select>
+      </div>
+
+      <button class="btn-run" id="run-btn" onclick="runAnalysis()">
+        <span id="btn-icon">▶</span>
+        <span id="btn-text">Run Analysis</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Metrics strip ──────────────────────────────────────── -->
+  <div class="card" id="metrics-card" style="display:none">
+    <div class="card-title">Run Metrics</div>
+    <div id="metrics-strip" style="display:grid">
+      <div class="metric"><div class="val" id="m-steps">–</div><div class="lbl">Steps</div></div>
+      <div class="metric"><div class="val" id="m-time">–</div><div class="lbl">Total Time</div></div>
+      <div class="metric"><div class="val" id="m-stop">–</div><div class="lbl">Stop Reason</div></div>
+    </div>
+  </div>
+
+  <!-- ── Content columns ────────────────────────────────────── -->
+  <div class="content-cols">
+
+    <!-- Timeline -->
+    <div class="card">
+      <div class="card-title">Agent Timeline</div>
+      <div id="timeline">
+        <div class="tl-empty" id="tl-empty">Upload a CSV and click Run to start the agent.</div>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div>
+      <div class="card" id="results-panel">
+        <div class="card-title">Analysis Results</div>
+
+        <div class="tabs">
+          <button class="tab active" onclick="switchTab('structured')">Structured</button>
+          <button class="tab" onclick="switchTab('raw')">Raw Output</button>
+          <button class="tab" onclick="switchTab('steplog')">Step Log</button>
+        </div>
+
+        <div id="tab-structured" class="tab-panel active">
+          <div id="decision-wrap"></div>
+
+          <!-- Policy parameters extracted from pricing page -->
+          <div class="result-section" id="policy-section" style="display:none">
+            <h3>Policy Parameters Used</h3>
+            <div class="policy-params" id="policy-params"></div>
+          </div>
+
+          <!-- Cost comparison: pay-per-use vs membership -->
+          <div class="result-section" id="cost-section">
+            <h3>Cost Comparison</h3>
+            <div class="cost-grid" id="cost-grid"></div>
+          </div>
+
+          <div class="result-section" id="just-section" style="display:none">
+            <h3>Justification</h3>
+            <p id="justification-text"></p>
+          </div>
+
+          <div class="result-section" id="weekly-section" style="display:none">
+            <h3>Weekly Breakdown</h3>
+            <div class="weekly-table-wrap" id="weekly-table"></div>
+          </div>
+
+          <div class="result-section" id="assume-section" style="display:none">
+            <h3>Assumptions &amp; Caveats</h3>
+            <ul id="assumptions-list"></ul>
+          </div>
+
+          <div class="result-section" id="cite-section" style="display:none">
+            <h3>Citations</h3>
+            <div id="citations-wrap"></div>
+          </div>
+        </div>
+
+        <div id="tab-raw" class="tab-panel">
+          <pre id="raw-answer"></pre>
+        </div>
+
+        <div id="tab-steplog" class="tab-panel">
+          <div id="step-log-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Step</th><th>Tool</th><th>Args Hash</th>
+                  <th>Latency (ms)</th><th>Success/Fail</th><th>Stop Reason</th>
+                </tr>
+              </thead>
+              <tbody id="step-log-body"></tbody>
+            </table>
+          </div>
+          <div id="calc-log-wrap" style="display:none;margin-top:16px">
+            <div class="card-title" style="margin-bottom:8px">Calculator Calls</div>
+            <table>
+              <thead><tr><th>Expression</th><th>Result</th><th>Units</th></tr></thead>
+              <tbody id="calc-log-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content-cols -->
+</div><!-- /main -->
+
+<script>
+// ── File drop ────────────────────────────────────────────────────────────────
+const csvInput  = document.getElementById('csv-input');
+const dropZone  = document.getElementById('drop-zone');
+const fileNameEl = document.getElementById('file-name');
+let selectedFile = null;
+
+csvInput.addEventListener('change', e => {
+  selectedFile = e.target.files[0];
+  fileNameEl.textContent = selectedFile ? selectedFile.name : '';
+});
+['dragover','dragenter'].forEach(ev => {
+  dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+});
+['dragleave','drop'].forEach(ev => {
+  dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.remove('drag-over'); });
+});
+dropZone.addEventListener('drop', e => {
+  const f = e.dataTransfer.files[0];
+  if (f) { selectedFile = f; fileNameEl.textContent = f.name; }
+});
+
+// ── Tab switching ────────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    const ids = ['structured','raw','steplog'];
+    t.classList.toggle('active', ids[i] === name);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+// ── Timeline helpers ─────────────────────────────────────────────────────────
+const timeline = document.getElementById('timeline');
+const tlEmpty  = document.getElementById('tl-empty');
+
+const ICONS = {
+  thought:      '🧠',
+  action:       '⚙️',
+  observation:  '👁️',
+  final_answer: '✅',
+  error:        '❌',
+  init:         '🚀',
+};
+
+function addTimelineStep(type, stepNum, bodyHTML) {
+  if (tlEmpty) tlEmpty.style.display = 'none';
+  const div = document.createElement('div');
+  div.className = `tl-step ${type}`;
+  const stepLabel = stepNum != null ? `<span class="step-num">#${stepNum}</span>` : '';
+  div.innerHTML = `
+    <div class="tl-label">${ICONS[type] || '●'} ${type.replace('_',' ').toUpperCase()} ${stepLabel}</div>
+    <div class="tl-body ${type === 'action' ? 'action-body' : ''}">${bodyHTML}</div>`;
+  timeline.appendChild(div);
+  timeline.scrollTop = timeline.scrollHeight;
+}
+
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+// ── Run analysis ─────────────────────────────────────────────────────────────
+let activeSource = null;
+
+async function runAnalysis() {
+  if (!selectedFile) { alert('Please upload a CSV file first.'); return; }
+  const pricingUrl = document.getElementById('pricing-url').value.trim();
+  const model      = document.getElementById('model-select').value;
+  if (!pricingUrl) { alert('Please enter the pricing page URL.'); return; }
+
+  // Reset UI
+  document.getElementById('results-panel').style.display = 'none';
+  document.getElementById('metrics-card').style.display  = 'none';
+  timeline.innerHTML = '<div class="tl-empty" id="tl-empty" style="display:block">Running agent…</div>';
+  document.getElementById('step-log-body').innerHTML = '';
+  document.getElementById('raw-answer').textContent = '';
+
+  const btn = document.getElementById('run-btn');
+  btn.disabled = true;
+  document.getElementById('btn-icon').innerHTML = '<span class="spinner"></span>';
+  document.getElementById('btn-text').textContent = 'Running…';
+
+  if (activeSource) { activeSource.close(); }
+
+  const form = new FormData();
+  form.append('csv_file', selectedFile);
+  form.append('pricing_url', pricingUrl);
+  form.append('model', model);
+
+  try {
+    const resp = await fetch('/api/run', { method: 'POST', body: form });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({ detail: resp.statusText }));
+      alert('Server error: ' + (err.detail || resp.statusText));
+      resetBtn(); return;
+    }
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const parts = buf.split('\n\n');
+      buf = parts.pop();
+      for (const part of parts) {
+        const line = part.trim();
+        if (line.startsWith('data: ')) {
+          try { handleEvent(JSON.parse(line.slice(6))); } catch(e) {}
+        }
+      }
+    }
+  } catch (e) {
+    addTimelineStep('error', null, esc(e.message));
+  } finally {
+    resetBtn();
+  }
+}
+
+function resetBtn() {
+  const btn = document.getElementById('run-btn');
+  btn.disabled = false;
+  document.getElementById('btn-icon').textContent = '▶';
+  document.getElementById('btn-text').textContent = 'Run Analysis';
+}
+
+// ── Event handler ─────────────────────────────────────────────────────────────
+let metricsData = null;
+
+function handleEvent(ev) {
+  switch (ev.type) {
+    case 'init':
+      addTimelineStep('init', null,
+        `CSV loaded · <strong>${ev.row_count.toLocaleString()}</strong> rows · Model: <code>${esc(ev.model)}</code>`);
+      break;
+
+    case 'thought':
+      addTimelineStep('thought', ev.step, esc(ev.content));
+      break;
+
+    case 'action': {
+      const argsStr = JSON.stringify(ev.args, null, 2);
+      addTimelineStep('action', ev.step,
+        `<div class="tool-pill">🔧 ${esc(ev.tool)}</div>
+         <div class="tool-args">${esc(argsStr)}</div>
+         <div class="obs-meta">hash: ${esc(ev.args_hash)}</div>`);
+      break;
+    }
+
+    case 'observation': {
+      const ok = ev.success;
+      const resultStr = JSON.stringify(ev.result, null, 2);
+      const preview = resultStr.length > 800 ? resultStr.slice(0, 800) + '\n…[truncated]' : resultStr;
+      addTimelineStep('observation', ev.step,
+        `<div class="obs-meta ${ok ? 'obs-ok' : 'obs-fail'}">${ok ? '✓' : '✗'} ${esc(ev.tool)} · ${ev.latency_ms}ms</div>
+         <div class="tool-args">${esc(preview)}</div>`);
+      break;
+    }
+
+    case 'final_answer':
+      addTimelineStep('final_answer', ev.step,
+        `<em>Final answer produced — see Results panel →</em>`);
+      renderResults(ev.content);
+      break;
+
+    case 'citations':
+      renderCitations(ev.items);
+      break;
+
+    case 'calc_log':
+      renderCalcLog(ev.items);
+      break;
+
+    case 'metrics':
+      metricsData = ev;
+      showMetrics(ev);
+      renderStepLog(ev.step_logs);
+      break;
+
+    case 'error':
+      addTimelineStep('error', ev.step || null, esc(ev.content));
+      break;
+
+    case 'done':
+      if (!metricsData) {
+        addTimelineStep('init', null, 'Agent finished.');
+      }
+      break;
+  }
+}
+
+// ── Metrics ───────────────────────────────────────────────────────────────────
+function showMetrics(ev) {
+  document.getElementById('metrics-card').style.display = 'block';
+  document.getElementById('m-steps').textContent = ev.steps;
+  document.getElementById('m-time').textContent  = ev.total_time_s + 's';
+  document.getElementById('m-stop').textContent  = ev.stop_reason.replace('_',' ');
+}
+
+// ── Step log ──────────────────────────────────────────────────────────────────
+function renderStepLog(logs) {
+  const tbody = document.getElementById('step-log-body');
+  tbody.innerHTML = '';
+  (logs || []).forEach(l => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${l.step}</td>
+      <td><code>${esc(l.tool)}</code></td>
+      <td><code>${esc(l.args_hash)}</code></td>
+      <td>${l.latency_ms}</td>
+      <td style="color:${l.success ? '#68d391' : '#fc8181'}">${l.success ? '✓ ok' : '✗ fail'}</td>
+      <td><code style="color:#a0aec0">${esc(l.stop_reason || '–')}</code></td>`;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('step-log-wrap').style.display = 'block';
+}
+
+// ── Structured results renderer ───────────────────────────────────────────────
+function renderResults(text) {
+  document.getElementById('results-panel').style.display = 'block';
+
+  // Raw output tab
+  document.getElementById('raw-answer').textContent = text;
+
+  // ── Parse sections ────────────────────────────────────────────────────────
+  const section = (header) => {
+    const re = new RegExp(`\\*{0,2}${header}\\*{0,2}[:\\s]*(.*?)(?=\\n\\*{0,2}[A-Z][A-Z ]+[:\\*\\n]|$)`, 'is');
+    const m = text.match(re);
+    return m ? m[1].trim() : null;
+  };
+
+  // Decision
+  const decisionRaw = section('DECISION') || '';
+  const isMembership = /membership/i.test(decisionRaw);
+  const decisionText = isMembership ? 'Buy Monthly Membership' : 'Pay Per Ride / Minute';
+  const badgeClass   = isMembership ? 'membership' : 'payperuse';
+  const badgeIcon    = isMembership ? '🏆' : '💳';
+
+  document.getElementById('decision-wrap').innerHTML =
+    `<div class="decision-badge ${badgeClass}">${badgeIcon} ${esc(decisionText)}</div>`;
+
+  // Cost numbers — try multiple patterns to handle varied LLM formatting
+  function extractAmt(patterns) {
+    for (const p of patterns) {
+      const m = text.match(p);
+      if (m) return m[1].replace(/,/g, '');
+    }
+    return null;
+  }
+  const payPerUse = extractAmt([
+    /pay.per.use\s*(?:total)?[^$\d\n]*\$\s*([\d,]+\.?\d{0,2})/i,
+    /pay.per.(?:ride|minute)[^$\d\n]*\$\s*([\d,]+\.?\d{0,2})/i,
+    /total\s*(?:pay.per.use|ppu)[^$\d\n]*\$\s*([\d,]+\.?\d{0,2})/i,
+  ]);
+  const membership = extractAmt([
+    /monthly\s*membership[^$\d\n]*\$\s*([\d,]+\.?\d{0,2})/i,
+    /membership\s*(?:cost|fee|price|total)[^$\d\n]*\$\s*([\d,]+\.?\d{0,2})/i,
+    /\$\s*([\d,]+\.?\d{0,2})\s*\/?\s*month/i,
+  ]);
+  const savings = extractAmt([
+    /savings?[^$\d\n]*\$\s*([\d,]+\.?\d{0,2})/i,
+    /save[^$\d\n]*\$\s*([\d,]+\.?\d{0,2})/i,
+  ]);
+  const breakeven = (() => {
+    const m = text.match(/break.even[^:\n]*:\s*(\d+)\s*rides?/i);
+    return m ? m[1] : null;
+  })();
+
+  const costGrid = document.getElementById('cost-grid');
+  const ppuWins  = !isMembership;
+  costGrid.innerHTML = `
+    <div class="cost-cell ${ppuWins ? 'winner' : ''}">
+      <div class="cost-label">Pay-Per-Use Total</div>
+      <div class="cost-val">${payPerUse ? '$'+esc(payPerUse) : '—'}</div>
+      <div class="cost-sub">Applies unlock fee + overage per ride</div>
+    </div>
+    <div class="cost-cell ${isMembership ? 'winner' : ''}">
+      <div class="cost-label">Monthly Membership</div>
+      <div class="cost-val">${membership ? '$'+esc(membership) : '—'}</div>
+      <div class="cost-sub">Flat fee + any member surcharges</div>
+    </div>
+    ${savings ? `<div class="cost-cell neutral">
+      <div class="cost-label">Savings</div>
+      <div class="cost-val">$${esc(savings)}</div>
+      <div class="cost-sub">With ${esc(decisionText)}</div>
+    </div>` : ''}
+    ${breakeven ? `<div class="cost-cell neutral">
+      <div class="cost-label">Break-Even</div>
+      <div class="cost-val">${esc(breakeven)} rides</div>
+      <div class="cost-sub">Per month to justify membership</div>
+    </div>` : ''}`;
+
+  // Justification
+  const just = section('JUSTIFICATION');
+  if (just) {
+    document.getElementById('just-section').style.display = '';
+    document.getElementById('justification-text').textContent = just;
+  }
+
+  // Weekly table: parse markdown table
+  const tblMatch = text.match(/\|\s*Week[\s\S]*?(?=\n\n|\*\*[A-Z]|$)/i);
+  if (tblMatch) {
+    document.getElementById('weekly-section').style.display = '';
+    document.getElementById('weekly-table').innerHTML = mdTableToHTML(tblMatch[0]);
+  }
+
+  // Assumptions
+  const assumeRaw = section('ASSUMPTIONS') || section('CAVEATS');
+  if (assumeRaw) {
+    document.getElementById('assume-section').style.display = '';
+    const items = assumeRaw.split(/\n[-*•]/).map(s => s.trim()).filter(Boolean);
+    document.getElementById('assumptions-list').innerHTML =
+      items.map(i => `<li>${esc(i)}</li>`).join('');
+  }
+
+  // Citations are rendered separately via the 'citations' SSE event (renderCitations)
+}
+
+// ── Citations (from tool observations, not LLM text) ─────────────────────────
+function renderCitations(items) {
+  if (!items || !items.length) return;
+  document.getElementById('results-panel').style.display = 'block';
+  document.getElementById('cite-section').style.display = '';
+
+  // Also extract policy parameters (lines containing $ or pricing keywords)
+  const policyKeywords = /\$|\bper\s*(min|minute|ride)\b|\bincluded\b|\bsurcharge\b|\bunlock\b|\bmembership\b|\bmonthly\b/i;
+  const policyLines = items
+    .filter(c => policyKeywords.test(c.text) && c.text.length < 200)
+    .slice(0, 8);
+
+  if (policyLines.length) {
+    document.getElementById('policy-section').style.display = '';
+    document.getElementById('policy-params').innerHTML = policyLines
+      .map(c => `<div class="param-tag">${esc(c.text)}</div>`)
+      .join('');
+  }
+
+  const html = items.map(c => `
+    <div class="citation">
+      <blockquote>"${esc(c.text)}"</blockquote>
+      <div class="cite-meta">
+        Source: <a href="${esc(c.source)}" target="_blank" rel="noopener">${esc(c.source)}</a>
+        &nbsp;·&nbsp; Captured: ${esc(c.captured)}
+      </div>
+    </div>`).join('');
+
+  document.getElementById('citations-wrap').innerHTML = html;
+}
+
+// ── Calc log (all calculator calls during the run) ────────────────────────────
+function renderCalcLog(items) {
+  if (!items || !items.length) return;
+  const tbody = document.getElementById('calc-log-body');
+  tbody.innerHTML = items.map(c => `
+    <tr>
+      <td><code>${esc(c.expression)}</code></td>
+      <td><strong>${c.value !== null ? c.value : '—'}</strong></td>
+      <td>${esc(c.units || '')}</td>
+    </tr>`).join('');
+  document.getElementById('calc-log-wrap').style.display = 'block';
+}
+
+// Convert simple markdown table to HTML
+function mdTableToHTML(md) {
+  const rows = md.trim().split('\n').filter(r => r.includes('|'));
+  if (rows.length < 2) return `<pre>${esc(md)}</pre>`;
+  const parse = r => r.split('|').map(c => c.trim()).filter((_,i,a) => i > 0 && i < a.length - 1);
+  let html = '<table><thead><tr>';
+  parse(rows[0]).forEach(h => { html += `<th>${esc(h)}</th>`; });
+  html += '</tr></thead><tbody>';
+  rows.slice(2).forEach(r => {
+    if (/^[\s\-|]+$/.test(r)) return;
+    html += '<tr>';
+    parse(r).forEach(c => { html += `<td>${esc(c)}</td>`; });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  return html;
+}
+</script>
+</body>
+</html>

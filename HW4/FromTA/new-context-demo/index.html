@@ -1,0 +1,697 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Context Engineering Lab</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0f1117;
+      --surface:   #1a1d27;
+      --surface2:  #20243a;
+      --border:    #2e3347;
+      --text:      #f0f2f7;       /* bright white-ish for main text */
+      --text-sec:  #b8c0d4;       /* secondary text — clearly readable */
+      --muted:     #7a849e;       /* hints, labels */
+      --accent:    #5a67f2;
+
+      --col-bare:  #f05252;
+      --col-code:  #e6a817;
+      --col-eng:   #0ea572;
+
+      --radius:    14px;
+      --radius-sm: 8px;
+    }
+
+    html, body { height: 100%; }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 13.5px;
+      line-height: 1.55;
+    }
+
+    /* ── shell ──────────────────────────────────────────────────────────── */
+    .shell { min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* ── header ─────────────────────────────────────────────────────────── */
+    .top-bar {
+      padding: 14px 22px 12px;
+      background: #141720;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .top-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -.01em;
+    }
+    .top-sub {
+      font-size: 13px;
+      color: var(--text-sec);
+      margin-top: 3px;
+    }
+    .badge-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    .badge {
+      font-size: 12px;
+      font-weight: 500;
+      padding: 3px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--text-sec);
+      background: var(--surface);
+    }
+    .badge.green  { border-color: rgba(14,165,114,.6); color: #4ade80; background: rgba(14,165,114,.1); }
+    .badge.indigo { border-color: rgba(90,103,242,.6); color: #a5b4fc; background: rgba(90,103,242,.1); }
+
+    /* ── layout grid ─────────────────────────────────────────────────────── */
+    .body-grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      overflow: hidden;
+    }
+    @media (max-width: 900px) {
+      .body-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── left panel ──────────────────────────────────────────────────────── */
+    .left-panel {
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 16px 16px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      background: #13161f;
+    }
+
+    .panel-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--muted);
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+
+    .section-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 12px 10px;
+    }
+    .section-card.highlight {
+      border-color: rgba(90,103,242,.55);
+      background: rgba(90,103,242,.07);
+    }
+
+    .section-title {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
+    .section-hint {
+      font-size: 12px;
+      color: var(--text-sec);
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+
+    .field { margin-bottom: 10px; }
+    .field:last-child { margin-bottom: 0; }
+
+    .field-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-sec);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 999px;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+    .dot-role { background: #818cf8; }
+    .dot-bg   { background: #38bdf8; }
+    .dot-hist { background: #fb923c; }
+    .dot-cons { background: #4ade80; }
+
+    textarea {
+      font: 12.5px / 1.55 "ui-monospace", SFMono-Regular, Menlo, Consolas, monospace;
+      color: var(--text);
+      width: 100%;
+      resize: vertical;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: #0f1117;
+      padding: 7px 9px;
+      outline: none;
+      transition: border-color .15s;
+    }
+    textarea:focus { border-color: rgba(90,103,242,.7); }
+    textarea::placeholder { color: var(--muted); }
+    textarea.code-area       { min-height: 74px; max-height: 160px; }
+    textarea.ingredient-area { min-height: 62px; max-height: 130px; }
+
+    .run-btn {
+      width: 100%;
+      padding: 10px 0;
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: #fff;
+      font: 700 14px system-ui, sans-serif;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(79,70,229,.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: opacity .15s;
+    }
+    .run-btn:disabled { opacity: .5; cursor: not-allowed; }
+    .run-btn:not(:disabled):hover { opacity: .88; }
+
+    .api-note {
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      padding: 0 4px;
+    }
+    .api-note code {
+      font-family: ui-monospace, monospace;
+      color: var(--text-sec);
+      background: var(--surface2);
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+
+    /* ── right panel ─────────────────────────────────────────────────────── */
+    .right-panel {
+      overflow-y: auto;
+      padding: 16px 18px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* experiment cards */
+    .exp-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .exp-card.bare       { border-left: 4px solid var(--col-bare); }
+    .exp-card.code       { border-left: 4px solid var(--col-code); }
+    .exp-card.engineered { border-left: 4px solid var(--col-eng);  }
+
+    .exp-header {
+      padding: 10px 14px 8px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: #171b26;
+    }
+    .exp-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .exp-tag {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .bare       .exp-tag { background: rgba(240,82,82,.2);  color: #fca5a5; border: 1px solid rgba(240,82,82,.5); }
+    .code       .exp-tag { background: rgba(230,168,23,.2); color: #fde68a; border: 1px solid rgba(230,168,23,.5); }
+    .engineered .exp-tag { background: rgba(14,165,114,.2); color: #6ee7b7; border: 1px solid rgba(14,165,114,.5); }
+
+    .exp-philosophy {
+      font-size: 13px;
+      color: var(--text-sec);
+      padding: 8px 14px 4px;
+      line-height: 1.5;
+    }
+
+    .exp-changed {
+      font-size: 12.5px;
+      color: var(--text-sec);
+      background: var(--surface2);
+      border-top: 1px dashed var(--border);
+      padding: 7px 14px;
+      line-height: 1.5;
+    }
+    .exp-changed strong { color: var(--text); font-weight: 700; }
+    .exp-changed em     { color: #fde68a; font-style: normal; font-weight: 600; }
+
+    .exp-body {
+      padding: 10px 14px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .token-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .token-label {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .token-pill {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 2px 9px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text-sec);
+    }
+
+    /* reply area */
+    .reply-box {
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: #0f1117;
+      padding: 10px 12px;
+      font: 13px / 1.65 system-ui, -apple-system, sans-serif;
+      white-space: pre-wrap;
+      min-height: 80px;
+      color: var(--text);
+    }
+    .reply-box.loading { color: var(--muted); font-style: italic; }
+    .reply-box.error   { color: #fca5a5; font-style: normal; }
+
+    /* "show prompt" toggle */
+    .context-toggle {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: color .12s;
+    }
+    .context-toggle:hover { color: var(--text-sec); }
+
+    .context-box {
+      border-radius: var(--radius-sm);
+      border: 1px dashed var(--border);
+      background: #0b0e16;
+      padding: 9px 11px;
+      font: 12px / 1.55 "ui-monospace", SFMono-Regular, Menlo, Consolas, monospace;
+      white-space: pre-wrap;
+      color: var(--text-sec);
+      max-height: 240px;
+      overflow-y: auto;
+      margin-top: 6px;
+    }
+
+    .hidden { display: none !important; }
+
+    /* spinner */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      display: inline-block;
+      width: 13px; height: 13px;
+      border: 2px solid rgba(200,210,255,.25);
+      border-top-color: #a5b4fc;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      vertical-align: middle;
+    }
+
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+  </style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- ── Header ──────────────────────────────────────────────────────────── -->
+  <header class="top-bar">
+    <div>
+      <div class="top-title">Context Engineering Lab</div>
+      <div class="top-sub">
+        Same bug &nbsp;·&nbsp; three different prompts &nbsp;·&nbsp; three different model replies
+      </div>
+    </div>
+    <div class="badge-row">
+      <span class="badge indigo">f(context) → output</span>
+      <span class="badge green">gpt-4o-mini</span>
+    </div>
+  </header>
+
+  <div class="body-grid">
+
+    <!-- ── LEFT: inputs ────────────────────────────────────────────────────── -->
+    <aside class="left-panel">
+
+      <!-- Scenario -->
+      <div class="section-card">
+        <div class="panel-label">Scenario — used by all 3 experiments</div>
+        <div class="section-title">A failing test after a refactor</div>
+        <div class="section-hint">
+          All three experiments receive the <strong>same bug</strong>.
+          Only the surrounding context changes.
+        </div>
+
+        <div class="field">
+          <div class="field-label">Failing test</div>
+          <textarea id="testCode" class="code-area">def test_total_price_includes_tax():
+    price = calculate_total_price(100, tax_rate=0.1, discount=0.05)
+    assert price == 104.5  # 100 * 0.95 (discount first) * 1.1 (then tax)</textarea>
+        </div>
+
+        <div class="field">
+          <div class="field-label">Current implementation (has the bug)</div>
+          <textarea id="implCode" class="code-area">def calculate_total_price(base, tax_rate, discount):
+    # BUG from refactor: discount is now applied AFTER tax
+    with_tax = base * (1 + tax_rate)
+    return with_tax * (1 - discount)</textarea>
+        </div>
+
+        <div class="field">
+          <div class="field-label">Error output</div>
+          <textarea id="errorOutput" class="code-area" style="min-height:58px;">FAILED test_pricing.py::test_total_price_includes_tax
+AssertionError: assert 99.275 == 104.5
+  Actual:   99.275  =  100 * 1.1 * 0.95   (tax first)
+  Expected: 104.5   =  100 * 0.95 * 1.1   (discount first)</textarea>
+        </div>
+      </div>
+
+      <!-- Context Ingredients -->
+      <div class="section-card highlight">
+        <div class="panel-label">Context ingredients — only Experiment 3 uses these</div>
+        <div class="section-title">Engineer the context layer</div>
+        <div class="section-hint">
+          Edit any field, re-run, and watch <strong>only Experiment 3</strong> change.
+          Experiments 1 and 2 stay the same — showing the effect of each ingredient.
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <span class="dot dot-role"></span>System role &amp; persona
+          </div>
+          <textarea id="systemRole" class="ingredient-area">You are a calm, patient AI tutor for a Data Engineering course. Always identify the root cause in plain language before showing code. Keep all suggested changes minimal.</textarea>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <span class="dot dot-bg"></span>Student background
+          </div>
+          <textarea id="studentBg" class="ingredient-area">The student understands Python basics and knows what a unit test is, but has never thought about arithmetic order in price calculations. They are frustrated and said: "I just want the test to pass!"</textarea>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <span class="dot dot-hist"></span>Conversation history (summary)
+          </div>
+          <textarea id="convHistory" class="ingredient-area">Student shared the failing assertion 5 minutes ago. You already asked them to paste the implementation, which they did. They confirmed the function passed all tests before the refactor yesterday.</textarea>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <span class="dot dot-cons"></span>Constraints
+          </div>
+          <textarea id="constraints" class="ingredient-area">- Do NOT suggest large refactors or new parameters.
+- Explain the root cause in 1-2 plain-language sentences first.
+- Show ONLY the changed line(s), not the full function.
+- End with one sentence confirming what the fix achieves.</textarea>
+        </div>
+      </div>
+
+      <button id="runBtn" class="run-btn" type="button">
+        &#9654;&nbsp; Run All 3 Experiments
+      </button>
+
+      <p class="api-note">
+        Calls OpenAI 3&times; &mdash; requires <code>OPENAI_API_KEY</code> in <code>.env</code>
+      </p>
+
+    </aside>
+
+    <!-- ── RIGHT: results ────────────────────────────────────────────────── -->
+    <main class="right-panel">
+
+      <!-- Experiment 1 -->
+      <article class="exp-card bare" id="card-bare">
+        <div class="exp-header">
+          <div class="exp-title">Experiment 1 &nbsp;·&nbsp; No Context</div>
+          <span class="exp-tag">baseline</span>
+        </div>
+        <div class="exp-philosophy" id="phil-bare">
+          The model receives only the question — no code, no role, no history.
+          This is the "just type your question into ChatGPT" approach.
+        </div>
+        <div class="exp-changed">
+          <strong>What is in the context window:</strong>&nbsp; One user message. Nothing else.
+        </div>
+        <div class="exp-body">
+          <div class="token-row" id="tokens-bare">
+            <span class="token-label">Tokens:</span>
+            <span class="token-pill">— prompt</span>
+            <span class="token-pill">— completion</span>
+          </div>
+          <div class="reply-box loading" id="reply-bare">
+            Click "Run All 3 Experiments" to see the model reply here.
+          </div>
+          <button class="context-toggle" type="button" onclick="toggleContext('bare')">
+            &#9656;&nbsp; Show prompt sent to model
+          </button>
+          <div class="context-box hidden" id="ctx-bare"></div>
+        </div>
+      </article>
+
+      <!-- Experiment 2 -->
+      <article class="exp-card code" id="card-code">
+        <div class="exp-header">
+          <div class="exp-title">Experiment 2 &nbsp;·&nbsp; Code Context Added</div>
+          <span class="exp-tag">code context</span>
+        </div>
+        <div class="exp-philosophy" id="phil-code">
+          System prompt + test + implementation + error output added.
+          The model now has the facts it needs to pinpoint the bug.
+        </div>
+        <div class="exp-changed" id="changed-code">
+          <strong>Added vs. Exp 1:</strong>&nbsp;
+          A system prompt, the test body, the buggy implementation, and the error output.
+        </div>
+        <div class="exp-body">
+          <div class="token-row" id="tokens-code">
+            <span class="token-label">Tokens:</span>
+            <span class="token-pill">— prompt</span>
+            <span class="token-pill">— completion</span>
+          </div>
+          <div class="reply-box loading" id="reply-code">Waiting to run&hellip;</div>
+          <button class="context-toggle" type="button" onclick="toggleContext('code')">
+            &#9656;&nbsp; Show prompt sent to model
+          </button>
+          <div class="context-box hidden" id="ctx-code"></div>
+        </div>
+      </article>
+
+      <!-- Experiment 3 -->
+      <article class="exp-card engineered" id="card-engineered">
+        <div class="exp-header">
+          <div class="exp-title">Experiment 3 &nbsp;·&nbsp; Fully Engineered Context</div>
+          <span class="exp-tag">engineered</span>
+        </div>
+        <div class="exp-philosophy" id="phil-engineered">
+          Role + student background + conversation history + constraints, on top of the code.
+          Every piece of context has a deliberate job.
+        </div>
+        <div class="exp-changed" id="changed-engineered">
+          <strong>Added vs. Exp 2:</strong>&nbsp;
+          Detailed system role, student background, conversation history, and hard constraints.
+          <em>The bug facts are identical to Experiment 2.</em>
+        </div>
+        <div class="exp-body">
+          <div class="token-row" id="tokens-engineered">
+            <span class="token-label">Tokens:</span>
+            <span class="token-pill">— prompt</span>
+            <span class="token-pill">— completion</span>
+          </div>
+          <div class="reply-box loading" id="reply-engineered">Waiting to run&hellip;</div>
+          <button class="context-toggle" type="button" onclick="toggleContext('engineered')">
+            &#9656;&nbsp; Show prompt sent to model
+          </button>
+          <div class="context-box hidden" id="ctx-engineered"></div>
+        </div>
+      </article>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  var runBtn = document.getElementById("runBtn");
+
+  function toggleContext(key) {
+    var box = document.getElementById("ctx-" + key);
+    var btn = box.previousElementSibling;
+    if (!box) return;
+    if (box.classList.contains("hidden")) {
+      box.classList.remove("hidden");
+      btn.innerHTML = "&#9662;&nbsp; Hide prompt sent to model";
+    } else {
+      box.classList.add("hidden");
+      btn.innerHTML = "&#9656;&nbsp; Show prompt sent to model";
+    }
+  }
+
+  function setCardLoading(key, msg) {
+    var replyEl = document.getElementById("reply-" + key);
+    if (replyEl) {
+      replyEl.className = "reply-box loading";
+      replyEl.textContent = msg || "Running\u2026";
+    }
+    var tokensEl = document.getElementById("tokens-" + key);
+    if (tokensEl) {
+      tokensEl.innerHTML =
+        "<span class=\"token-label\">Tokens:</span>" +
+        "<span class=\"token-pill\"><span class=\"spinner\"></span></span>";
+    }
+  }
+
+  function populateCard(exp) {
+    var key = exp.key;
+
+    var phil = document.getElementById("phil-" + key);
+    if (phil) phil.textContent = exp.philosophy;
+
+    var changed = document.getElementById("changed-" + key);
+    if (changed) {
+      changed.innerHTML = "<strong>What changed:</strong>&nbsp;" + exp.what_changed;
+    }
+
+    var tokensEl = document.getElementById("tokens-" + key);
+    if (tokensEl) {
+      var pIn  = exp.prompt_tokens != null     ? exp.prompt_tokens     : "?";
+      var pOut = exp.completion_tokens != null ? exp.completion_tokens : "?";
+      tokensEl.innerHTML =
+        "<span class=\"token-label\">Tokens:</span>" +
+        "<span class=\"token-pill\">" + pIn  + " prompt</span>" +
+        "<span class=\"token-pill\">" + pOut + " completion</span>";
+    }
+
+    var replyEl = document.getElementById("reply-" + key);
+    if (replyEl) {
+      replyEl.className = "reply-box";
+      replyEl.textContent = exp.reply || "(no reply)";
+    }
+
+    var ctxEl = document.getElementById("ctx-" + key);
+    if (ctxEl) ctxEl.textContent = exp.context_sent || "";
+  }
+
+  function showCardError(key, msg) {
+    var replyEl = document.getElementById("reply-" + key);
+    if (replyEl) {
+      replyEl.className = "reply-box error";
+      replyEl.textContent = "Error: " + msg;
+    }
+    var tokensEl = document.getElementById("tokens-" + key);
+    if (tokensEl) {
+      tokensEl.innerHTML =
+        "<span class=\"token-label\">Tokens:</span>" +
+        "<span class=\"token-pill\">—</span>";
+    }
+  }
+
+  function buildPayload() {
+    return {
+      scenario: {
+        test_name: "test_total_price_includes_tax",
+        test_code:           document.getElementById("testCode").value    || "",
+        implementation_code: document.getElementById("implCode").value    || "",
+        error_output:        document.getElementById("errorOutput").value || ""
+      },
+      ingredients: {
+        system_role:          document.getElementById("systemRole").value    || "",
+        student_background:   document.getElementById("studentBg").value     || "",
+        conversation_history: document.getElementById("convHistory").value   || "",
+        constraints:          document.getElementById("constraints").value   || ""
+      }
+    };
+  }
+
+  async function runExperiments() {
+    runBtn.disabled = true;
+    runBtn.innerHTML = "<span class=\"spinner\"></span>&nbsp; Calling OpenAI (3&times;)&hellip;";
+
+    setCardLoading("bare",       "Calling OpenAI for Experiment 1\u2026");
+    setCardLoading("code",       "Waiting for Experiment 1\u2026");
+    setCardLoading("engineered", "Waiting for Experiment 2\u2026");
+
+    setTimeout(function() { setCardLoading("code",       "Calling OpenAI for Experiment 2\u2026"); }, 1400);
+    setTimeout(function() { setCardLoading("engineered", "Calling OpenAI for Experiment 3\u2026"); }, 2800);
+
+    var url = window.location.origin + "/api/run-experiments";
+
+    try {
+      var res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildPayload())
+      });
+
+      var data;
+      try { data = await res.json(); } catch(e) { data = {}; }
+
+      if (!res.ok) {
+        var errMsg = (data && data.detail) ? data.detail : ("HTTP " + res.status);
+        showCardError("bare", errMsg);
+        showCardError("code", errMsg);
+        showCardError("engineered", errMsg);
+        return;
+      }
+
+      var experiments = (data && Array.isArray(data.experiments)) ? data.experiments : [];
+      for (var i = 0; i < experiments.length; i++) {
+        populateCard(experiments[i]);
+      }
+
+    } catch(err) {
+      var msg = (err && err.message) ? err.message : String(err);
+      showCardError("bare", msg);
+      showCardError("code", msg);
+      showCardError("engineered", msg);
+    } finally {
+      runBtn.disabled = false;
+      runBtn.innerHTML = "&#9654;&nbsp; Run All 3 Experiments";
+    }
+  }
+
+  runBtn.addEventListener("click", runExperiments);
+</script>
+</body>
+</html>

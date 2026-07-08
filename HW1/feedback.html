@@ -1,0 +1,146 @@
+<!-- The DOCTYPE declaration defines the document type and version of HTML -->
+<!DOCTYPE html>
+<!-- The <html> tag is the root element of the HTML document. 'lang' specifies the language of the content. -->
+<html lang="en">
+<!-- The <head> section contains metadata about the document (not displayed on the page). -->
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!-- The <title> tag defines the title of the page, shown on the browser tab. -->
+<title>Feedback Demo - Data 236</title>
+<style>
+/* Basic styling to make the form look clean and professional */
+body {
+    font-family: Arial, sans-serif;
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 20px;
+    background-color: #f5f5f5;
+    line-height: 1.6;
+}
+
+h1 {
+    color: #333;
+    text-align: center;
+    margin-bottom: 30px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #4CAF50;
+}
+
+h2 {
+    color: #555;
+    margin-top: 40px;
+}
+
+form {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #333;
+}
+
+input, select, textarea {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+    margin-bottom: 15px;
+    box-sizing: border-box;
+}
+
+input:focus, select:focus, textarea:focus {
+    border-color: #4CAF50;
+    outline: none;
+}
+
+button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 12px 30px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    display: block;
+    margin: 20px auto 0;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+#feedbackList {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-top: 20px;
+}
+
+#feedbackList li {
+    background: #f9f9f9;
+    margin: 10px 0;
+    padding: 15px;
+    border-radius: 5px;
+    border-left: 4px solid #4CAF50;
+}
+
+#feedbackList button {
+    background-color: #ff4444;
+    margin: 10px 0 0 0;
+    padding: 8px 15px;
+    font-size: 14px;
+}
+
+#feedbackList button:hover {
+    background-color: #cc0000;
+}
+</style>
+</head>
+<!-- The <body> tag contains all the content that will be displayed on the page. -->
+<body>
+<!-- Headings -->
+<!-- <h1> has the largest heading size and subsequent headings have smeller heading sizes with <h6> having the smallest -->
+<h1>Course Feedback</h1>
+
+<!-- Form to collect feedback -->
+<!-- The <form> tag in HTML is used to collect user input and send it to a server for processing. -->
+<form id="feedbackForm">
+<!-- <label> is used to define a label for elements like text field, text area, check boxes etc. -->
+<label for="studentName">Name *</label><br />
+<!--  <input> defines an input/text box field.  -->
+<input type="text" id="studentName" placeholder="Full name" required /><br /><br />
+
+
+<label for="studentEmail">Email *</label><br />
+<input type="email" id="studentEmail" placeholder="SJSU email" required /><br /><br />
+
+<label for="feedbackMessage">Your Feedback *</label><br>
+        <!-- The <select> tag in HTML is used to create a dropdown menu -->
+        <select id="feedbackMessage" required>
+            <option value="" disabled selected>Choose</option>
+            <option value="High">Excellent</option>
+            <option value="Medium">Good</option>
+            <option value="Low">Bad</option>
+        </select><br><br>
+
+<!-- button tag is used to create a button -->
+<button type="submit">Submit</button>
+</form>
+
+
+<h2>Submissions:</h2>
+<ul id="feedbackList"></ul>
+
+<!-- <script> embeds/references js code within HTML page-->
+<script src="feedback.js"></script>
+</body>
+</html>

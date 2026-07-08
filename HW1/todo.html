@@ -1,0 +1,52 @@
+<!-- The DOCTYPE declaration defines the document type and version of HTML -->
+<!DOCTYPE html>
+<!-- The <html> tag is the root element of the HTML document. 'lang' specifies the language of the content. -->
+<html lang="en">
+<!-- The <head> section contains metadata about the document (not displayed on the page). -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <!-- The <title> tag defines the title of the page, shown on the browser tab. -->
+    <title>To-Do List</title>
+</head>
+<!-- The <body> tag contains all the content that will be displayed on the page. -->
+<body>
+    <!-- Headings -->
+     <!-- <h1> has the largest heading size and subsequent headings have smeller heading sizes with <h6> having the smallest -->
+    <h1>To-Do List</h1>
+    <!-- The <form> tag in HTML is used to collect user input and send it to a server for processing. -->
+    <form id="todoForm">
+        <!-- <label> is used to define a label for elements like text field, text area, check boxes etc. -->
+        <label for="task">Task *</label><br>
+         <!--  <input> defines an input/text box field.  -->
+        <input type="text" id="task" placeholder="Enter a task" required><br><br>
+
+        <label for="priority">Priority *</label><br>
+        <!-- The <select> tag in HTML is used to create a dropdown menu -->
+        <select id="priority" required>
+            <option value="">Select priority</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+        </select><br><br>
+        <!-- button tag is used to create a button -->
+        <button type="submit">Add Task</button>
+    </form>
+    <h2>Tasks:</h2>
+    <ul id="taskList"><ul>
+    <!-- <script> embeds/references js code within HTML page-->
+    <script src="todo.js"></script>
+</body>
+</html>
+
+
+<!--
+    Reference:
+    HTML
+    1. https://www.w3schools.com/html/html_basic.asp
+    2. https://www.geeksforgeeks.org/html-basics/
+
+    Javascript
+    1. https://www.w3schools.com/js/
+    2. https://www.geeksforgeeks.org/javascript/
+-->

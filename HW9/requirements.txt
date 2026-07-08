@@ -1,0 +1,10 @@
+Task:  Semantic Caching with Redis and Ollama Assignment:  
+Build a semantic caching system that stores  Ollama LLM responses in Redis using vector embeddings. Configure Redis with a vector index to store query embeddings (using a model like SentenceTransformers), set a similarity threshold around 0.85, and implement logic that generates an embedding for each incoming query, searches Redis for semantically similar cached queries using cosine similarity, and returns the cached response if the similarity score exceeds your threshold. When no similar query exists, send the request to Ollama, get the response, then store both the query embedding and response in Redis for future cache hits. 
+IMPORTANT:  Test your system with at least 10 diverse  queries including exact duplicates, paraphrased questions, and completely new queries to evaluate performance. 
+
+Measuring Cache Performance:  To determine whether  a response came from cache or directly from Ollama, implement a  simple flag-based tracking  system  in your query handler function. 
+
+When your similarity search finds a match above the threshold, set a boolean flag is_cached=True  and log the cache hit along with the  similarity score before returning the cached response. When no match is found and you call Ollama, set  is_cached=False  and log the cache miss. 
+
+Output Format: 
+Return this flag alongside your response so you can track metrics like cache hit rate (percentage of queries served from cache), average response time for cached vs non-cached queries, and the speed improvement factor. Add timestamps before and after each operation to measure that cached responses should be 4-15X faster than Ollama calls. 

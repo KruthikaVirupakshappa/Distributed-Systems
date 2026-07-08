@@ -1,0 +1,40 @@
+Part 1: Backend Service 
+Implement a Kafka-based user management service that handles the following operations:1. CREATE_USER – Create a new user
+● Input: { "operation": "CREATE_USER", "name": string, "email": string, "age": number }
+● Output: { "success": true, "userId": string, "message": "User created" }
+2. GET_USER – Retrieve user by ID
+● Input: { "operation": "GET_USER", "userId": string }
+● Output: { "success": true, "user": { userId, name, email, age } }
+Kafka Requirements
+● Use two topics:
+○ user_requests
+○ user_responses
+● Each message must include:
+● {
+● "correlation_id": "unique-id",
+● "reply_to": "user_responses",
+● "data": { ... }
+● }
+● The worker must:
+○ Consume from user_requests
+○ Send response to reply_to
+○ Include same correlation_id in response
+General Requirements
+● Store users in-memory (Python dictionary)
+● Generate unique user IDs (UUID)
+● Validate input (email format, age > 0)
+● Return proper error messages for invalid operations
+Demonstration
+Create a file homework_demo.py that demonstrates operations in sequence:
+● CREATE
+● GET_USER
+Screenshots Requirements:
+1. Docker Containers Running - Command: docker ps
+○ Worker (consumer) service started (shows: "Consumer is ready and listening…")
+○ FastAPI service running (shows server started on [http://127.0.0.1:8000](http://127.0.0.1:8000))
+2. Execute CREATE_USER and GET_USER operations (from homework_demo.py or API call)
+3. Show logs of:
+○ message sent to user_requests topic
+○ message received and processed by worker
+○ response sent to user_responses topic
+○ response received by FastAPI and returned to client

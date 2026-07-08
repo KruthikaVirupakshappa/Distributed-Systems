@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management - REST API</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+
+<body>
+    <h1 class="heading">User Management App - REST API</h1>
+
+    <h2>Users List</h2>
+    <table id="userTable" class="user-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+            </tr>
+        </thead>
+        <tbody id="userTableBody">
+            <!-- Users will be loaded here via JavaScript -->
+        </tbody>
+    </table>
+
+    <!-- Create User Section -->
+    <div class="actions-container">
+        <h3>Create User</h3>
+        <input type="text" id="createName" placeholder="Enter user name">
+        <button onclick="createUser()">Add User</button>
+    </div>
+
+    <!-- Update User Section -->
+    <div class="actions-container">
+        <h3>Update User</h3>
+        <input type="number" id="updateId" placeholder="Enter User ID">
+        <input type="text" id="updateName" placeholder="Enter new name">
+        <button onclick="updateUser()">Update User</button>
+    </div>
+
+    <!-- Delete User Section -->
+    <div class="actions-container">
+        <h3>Delete User</h3>
+        <input type="number" id="deleteId" placeholder="Enter User ID">
+        <button onclick="deleteUser()">Delete User</button>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+
+</html>

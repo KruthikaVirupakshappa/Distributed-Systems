@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+aiokafka
+websockets
+langchain
+langchain-ollama
+pydantic
+python-dotenv
+openai
