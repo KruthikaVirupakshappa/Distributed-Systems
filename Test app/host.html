@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Acme Corp — a completely unrelated host website</title>
+<style>
+  /* This CSS belongs to the HOST SITE, not your widget.
+     Notice it's deliberately a bit messy / generic, on purpose,
+     to prove the widget's Shadow DOM doesn't inherit any of it. */
+  body {
+    font-family: Georgia, serif;
+    background: #fdfaf3;
+    color: #2b2b2b;
+    max-width: 720px;
+    margin: 40px auto;
+    padding: 0 20px;
+    line-height: 1.6;
+  }
+  button { color: red; padding: 20px; border: 4px dashed purple; }
+  h1 { font-size: 32px; }
+  .card {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 20px;
+    margin: 24px 0;
+  }
+</style>
+</head>
+<body>
+
+  <h1>Acme Corp — Employee Handbook Portal</h1>
+  <p>
+    This page represents <strong>any existing website</strong> you might embed
+    the widget into. Notice the host page's own styling above (red button
+    text, purple dashed borders, serif font) — this is intentionally ugly
+    to prove a point: none of it leaks into the widget below, because the
+    widget renders inside a Shadow DOM boundary.
+  </p>
+
+  <button>A completely unrelated host-page button</button>
+
+  <div class="card">
+    <h2>Inline widget — embedded directly in page content</h2>
+    <p>This is mounted with <code>mode="inline"</code>, placed exactly where
+      the host page wants a search box in its layout.</p>
+
+    <!-- This is the entire integration for the inline search box -->
+    <rag-widget mode="inline" api-base="http://localhost:8000" org-id="acme-demo"></rag-widget>
+  </div>
+
+  <div class="card">
+    <h2>Try asking</h2>
+    <ul>
+      <li>"What is the refund policy?"</li>
+      <li>"How do I reset my password?"</li>
+      <li>Anything else — you'll see the fallback response</li>
+    </ul>
+  </div>
+
+  <p>
+    There's also a floating chat launcher in the bottom-right corner of this
+    page — mounted with <code>mode="floating"</code>, injected by the same
+    script, requiring zero layout space from the host page.
+  </p>
+
+  <!-- ============================================================
+       THIS is the entire integration burden for the host site:
+       one script tag, plus as many <rag-widget> elements as needed.
+       ============================================================ -->
+  <script src="widget/widget.js"></script>
+  <rag-widget mode="floating" api-base="http://localhost:8000" org-id="acme-demo"></rag-widget>
+
+</body>
+</html>
